@@ -1,6 +1,7 @@
 """
 Simple AI chain implementations for StudySync AI.
 Provides intelligent study plan, quiz, and explanation generation using Cerebras AI.
+Enhanced with memory capabilities for context-aware responses.
 """
 
 import json
@@ -11,6 +12,14 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 from cerebras_client import cerebras_client
+
+# Import memory management for context-aware responses
+try:
+    from memory_manager import get_context_for_ai_chain, store_user_interaction
+    MEMORY_AVAILABLE = True
+except ImportError:
+    MEMORY_AVAILABLE = False
+    logging.warning("Memory manager not available. Chains will work without context awareness.")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -54,21 +63,34 @@ class ExplainInput(BaseModel):
 
 # Simple Chain Implementations
 class PlanChain:
-    """Simple AI chain for generating study plans"""
+    """Simple AI chain for generating study plans with memory context"""
     
     def __call__(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
-        """Generate a study plan"""
+        """Generate a study plan with context awareness"""
         try:
             study_plan_input = inputs["study_plan_input"]
             
-            # Create prompt
-            prompt = self._create_plan_prompt(study_plan_input)
+            # Get context from previous interactions if memory is available
+            context = []
+            if MEMORY_AVAILABLE:
+                try:
+                    context = get_context_for_ai_chain(
+                        user_id=study_plan_input.user_id,
+                        chain_type="plan",
+                        current_input=study_plan_input.model_dump(),
+                        max_context_items=3
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to retrieve context: {e}")
+            
+            # Create prompt with context
+            prompt = self._create_plan_prompt(study_plan_input, context)
             
             # Call Cerebras AI
             response = cerebras_client.chat.completions.create(
                 model="llama3.1-8b",
                 messages=[
-                    {"role": "system", "content": "You are an expert educational consultant who creates personalized study plans. Generate comprehensive, structured study plans with clear sections and actionable steps."},
+                    {"role": "system", "content": "You are an expert educational consultant who creates personalized study plans. Generate comprehensive, structured study plans with clear sections and actionable steps. Use any previous learning context to create more personalized and progressive plans."},
                     {"role": "user", "content": prompt}
                 ],
                 max_tokens=2000,
@@ -106,6 +128,19 @@ class PlanChain:
                 "model_used": "llama3.1-8b"
             }
             
+            # Store interaction in memory if available
+            if MEMORY_AVAILABLE:
+                try:
+                    store_user_interaction(
+                        user_id=study_plan_input.user_id,
+                        chain_type="plan",
+                        input_data=study_plan_input.model_dump(),
+                        output_data=plan_data,
+                        metadata={"context_used": len(context) > 0}
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to store interaction in memory: {e}")
+            
             return plan_data
             
         except Exception as e:
@@ -117,9 +152,11 @@ class PlanChain:
                 "metadata": {"error": str(e)}
             }
     
-    def _create_plan_prompt(self, input_data: StudyPlanInput) -> str:
-        """Create prompt for study plan generation"""
-        return f"""Create a detailed study plan for the following requirements:
+    def _create_plan_prompt(self, input_data: StudyPlanInput, context: List[Dict[str, Any]] = None) -> str:
+        """Create prompt for study plan generation with memory context"""
+        
+        # Base prompt
+        prompt = f"""Create a detailed study plan for the following requirements:
 
 Subject: {input_data.subject}
 Goals: {', '.join(input_data.goals)}
@@ -128,7 +165,17 @@ Difficulty Level: {input_data.difficulty_level}
 Learning Style: {input_data.learning_style}
 Time Commitment: {input_data.time_commitment}
 Focus Areas: {', '.join(input_data.focus_areas) if input_data.focus_areas else 'General coverage'}
-Current Knowledge: {input_data.current_knowledge or 'Beginner level'}
+Current Knowledge: {input_data.current_knowledge or 'Beginner level'}"""
+
+        # Add context from previous interactions if available
+        if context and len(context) > 0:
+            prompt += "\n\nPrevious Learning Context:\n"
+            prompt += "Consider the user's learning history when creating this plan:\n"
+            for i, ctx in enumerate(context[:3], 1):  # Limit to 3 most relevant
+                prompt += f"{i}. {ctx.get('input_summary', '')} - {ctx.get('output_summary', '')}\n"
+            prompt += "\nBuild upon this previous learning and avoid unnecessary repetition.\n"
+        
+        prompt += """
 
 Please create a comprehensive study plan with:
 1. Clear title and description
@@ -140,23 +187,38 @@ Please create a comprehensive study plan with:
 
 Format the response as a well-structured plan that is practical and achievable."""
 
+        return prompt
+
 
 class QuizChain:
-    """Simple AI chain for generating quiz questions"""
+    """Simple AI chain for generating quiz questions with memory context"""
     
     def __call__(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
-        """Generate quiz questions"""
+        """Generate quiz questions with context awareness"""
         try:
             quiz_input = inputs["quiz_input"]
             
-            # Create prompt
-            prompt = self._create_quiz_prompt(quiz_input)
+            # Get context from previous interactions if memory is available
+            context = []
+            if MEMORY_AVAILABLE:
+                try:
+                    context = get_context_for_ai_chain(
+                        user_id=quiz_input.user_id,
+                        chain_type="quiz",
+                        current_input=quiz_input.model_dump(),
+                        max_context_items=3
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to retrieve context: {e}")
+            
+            # Create prompt with context
+            prompt = self._create_quiz_prompt(quiz_input, context)
             
             # Call Cerebras AI
             response = cerebras_client.chat.completions.create(
                 model="llama3.1-8b",
                 messages=[
-                    {"role": "system", "content": "You are an expert educator who creates high-quality educational quiz questions. Generate clear, accurate questions with detailed explanations."},
+                    {"role": "system", "content": "You are an expert educator who creates high-quality educational quiz questions. Generate clear, accurate questions with detailed explanations. Use any previous quiz history to create varied and progressive questions."},
                     {"role": "user", "content": prompt}
                 ],
                 max_tokens=1500,
@@ -168,7 +230,7 @@ class QuizChain:
             # Parse questions
             questions = self._parse_questions(quiz_text, quiz_input)
             
-            return {
+            quiz_result = {
                 "questions": questions,
                 "metadata": {
                     "user_id": str(quiz_input.user_id),
@@ -176,6 +238,21 @@ class QuizChain:
                     "model_used": "llama3.1-8b"
                 }
             }
+            
+            # Store interaction in memory if available
+            if MEMORY_AVAILABLE:
+                try:
+                    store_user_interaction(
+                        user_id=quiz_input.user_id,
+                        chain_type="quiz",
+                        input_data=quiz_input.model_dump(),
+                        output_data=quiz_result,
+                        metadata={"context_used": len(context) > 0}
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to store interaction in memory: {e}")
+            
+            return quiz_result
             
         except Exception as e:
             logger.error(f"Error generating quiz: {str(e)}")
@@ -191,14 +268,26 @@ class QuizChain:
                 "metadata": {"error": str(e)}
             }
     
-    def _create_quiz_prompt(self, input_data: QuizInput) -> str:
-        """Create prompt for quiz generation"""
-        return f"""Generate {input_data.question_count} educational quiz questions about: {input_data.topic}
+    def _create_quiz_prompt(self, input_data: QuizInput, context: List[Dict[str, Any]] = None) -> str:
+        """Create prompt for quiz generation with memory context"""
+        
+        # Base prompt
+        prompt = f"""Generate {input_data.question_count} educational quiz questions about: {input_data.topic}
 
 Requirements:
 - Difficulty Level: {input_data.difficulty}
 - Question Types: {', '.join(input_data.question_types)}
-- Focus Areas: {', '.join(input_data.focus_areas) if input_data.focus_areas else 'General coverage'}
+- Focus Areas: {', '.join(input_data.focus_areas) if input_data.focus_areas else 'General coverage'}"""
+
+        # Add context from previous quizzes if available
+        if context and len(context) > 0:
+            prompt += "\n\nPrevious Quiz History:\n"
+            prompt += "Consider the user's previous quiz attempts to create varied and progressive questions:\n"
+            for i, ctx in enumerate(context[:3], 1):  # Limit to 3 most relevant
+                prompt += f"{i}. {ctx.get('input_summary', '')} - {ctx.get('output_summary', '')}\n"
+            prompt += "\nCreate different questions that build upon or complement previous topics.\n"
+
+        prompt += """
 
 For each question, provide:
 1. Clear, unambiguous question text
@@ -208,6 +297,8 @@ For each question, provide:
 5. Educational value and learning objective
 
 Format each question clearly and ensure they test understanding rather than just memorization."""
+
+        return prompt
     
     def _parse_questions(self, text: str, quiz_input: QuizInput) -> List[Dict]:
         """Parse questions from AI response"""
@@ -241,21 +332,34 @@ Format each question clearly and ensure they test understanding rather than just
 
 
 class ExplainChain:
-    """Simple AI chain for generating concept explanations"""
+    """Simple AI chain for generating concept explanations with memory context"""
     
     def __call__(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
-        """Generate concept explanation"""
+        """Generate concept explanation with context awareness"""
         try:
             explain_input = inputs["explain_input"]
             
-            # Create prompt
-            prompt = self._create_explain_prompt(explain_input)
+            # Get context from previous interactions if memory is available
+            context = []
+            if MEMORY_AVAILABLE:
+                try:
+                    context = get_context_for_ai_chain(
+                        user_id=explain_input.user_id,
+                        chain_type="explain",
+                        current_input=explain_input.model_dump(),
+                        max_context_items=3
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to retrieve context: {e}")
+            
+            # Create prompt with context
+            prompt = self._create_explain_prompt(explain_input, context)
             
             # Call Cerebras AI
             response = cerebras_client.chat.completions.create(
                 model="llama3.1-8b",
                 messages=[
-                    {"role": "system", "content": "You are an expert educator who provides clear, comprehensive explanations of concepts. Adapt your language and complexity to your audience."},
+                    {"role": "system", "content": "You are an expert educator who provides clear, comprehensive explanations of concepts. Adapt your language and complexity to your audience. Use any previous learning context to build upon prior knowledge."},
                     {"role": "user", "content": prompt}
                 ],
                 max_tokens=1500,
@@ -264,7 +368,7 @@ class ExplainChain:
             
             explanation_text = response.choices[0].message.content
             
-            return {
+            explain_result = {
                 "explanation": explanation_text,
                 "key_points": [],
                 "examples": [],
@@ -277,6 +381,21 @@ class ExplainChain:
                 }
             }
             
+            # Store interaction in memory if available
+            if MEMORY_AVAILABLE:
+                try:
+                    store_user_interaction(
+                        user_id=explain_input.user_id,
+                        chain_type="explain",
+                        input_data=explain_input.model_dump(),
+                        output_data=explain_result,
+                        metadata={"context_used": len(context) > 0}
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to store interaction in memory: {e}")
+            
+            return explain_result
+            
         except Exception as e:
             logger.error(f"Error generating explanation: {str(e)}")
             return {
@@ -288,14 +407,25 @@ class ExplainChain:
                 "metadata": {"error": str(e)}
             }
     
-    def _create_explain_prompt(self, input_data: ExplainInput) -> str:
-        """Create prompt for concept explanation"""
+    def _create_explain_prompt(self, input_data: ExplainInput, context: List[Dict[str, Any]] = None) -> str:
+        """Create prompt for concept explanation with memory context"""
         context_text = f"\nContext: {input_data.context}" if input_data.context else ""
         
-        return f"""Provide a {input_data.complexity_level}-level explanation of: {input_data.concept}
+        # Base prompt
+        prompt = f"""Provide a {input_data.complexity_level}-level explanation of: {input_data.concept}
 
 Target Audience: {input_data.target_audience}
-Format Preference: {input_data.format_preference}{context_text}
+Format Preference: {input_data.format_preference}{context_text}"""
+
+        # Add context from previous explanations if available
+        if context and len(context) > 0:
+            prompt += "\n\nPrevious Learning Context:\n"
+            prompt += "Consider the user's previous concept explorations to provide a more connected explanation:\n"
+            for i, ctx in enumerate(context[:3], 1):  # Limit to 3 most relevant
+                prompt += f"{i}. {ctx.get('input_summary', '')} - {ctx.get('output_summary', '')}\n"
+            prompt += "\nBuild upon this knowledge and make connections where relevant.\n"
+
+        prompt += """
 
 Please provide a clear, comprehensive explanation that:
 1. Defines the concept clearly
@@ -306,6 +436,8 @@ Please provide a clear, comprehensive explanation that:
 6. Suggests related concepts to explore
 
 Tailor the complexity and language to the specified level and audience."""
+
+        return prompt
 
 
 # Factory functions

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, Depends, status, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import uvicorn
@@ -12,6 +12,7 @@ from typing import List, Optional
 from uuid import UUID
 from datetime import datetime
 from routes import study_router
+from ws import websocket_adapt_endpoint
 
 # Load environment variables
 load_dotenv()
@@ -43,6 +44,17 @@ app.add_middleware(
 
 # Include routers
 app.include_router(study_router)
+
+# WebSocket endpoints
+@app.websocket("/ws/adapt")
+async def websocket_endpoint(websocket: WebSocket):
+    """
+    WebSocket endpoint for real-time adaptive quiz generation.
+    
+    Provides streaming AI-powered quiz generation with live updates.
+    Supports real-time communication for enhanced user experience.
+    """
+    await websocket_adapt_endpoint(websocket)
 
 # Root endpoint
 @app.get("/")
@@ -100,7 +112,13 @@ async def api_info():
                 "study_plans": "/study/plans",
                 "quiz_questions": "/study/questions", 
                 "concept_explanations": "/study/explain",
-                "study_health": "/study/health"
+                "study_health": "/study/health",
+                "websocket_streaming": "/ws/adapt"
+            },
+            "websocket_features": {
+                "real_time_quiz_generation": True,
+                "streaming_ai_responses": True,
+                "adaptive_learning": True
             }
         }
     )

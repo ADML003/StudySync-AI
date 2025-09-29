@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
 from typing import List, Dict, Any
 import logging
+import asyncio
 from uuid import UUID
 
 from auth import get_current_user
@@ -9,6 +10,11 @@ from simple_chains import (
     create_plan_chain, StudyPlanInput,
     create_quiz_chain, QuizInput,
     create_explain_chain, ExplainInput
+)
+from database_service import (
+    save_study_plan_to_db,
+    save_question_history_to_db,
+    save_explanation_request_to_db
 )
 
 # Configure logging
@@ -26,6 +32,7 @@ explain_chain = create_explain_chain()
 @router.post("/plans")
 async def generate_study_plan(
     plan_data: StudyPlanInput,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """
@@ -45,7 +52,8 @@ async def generate_study_plan(
         
         logger.info(f"Successfully generated study plan with {len(result.get('sections', []))} sections")
         
-        return {
+        # Prepare response data
+        response_data = {
             "success": True,
             "plan": {
                 "title": result.get("title"),
@@ -60,6 +68,16 @@ async def generate_study_plan(
             "user_id": str(current_user.id)
         }
         
+        # Schedule async database save
+        background_tasks.add_task(
+            _save_study_plan_interaction,
+            current_user.id,
+            plan_data.model_dump(),
+            response_data
+        )
+        
+        return response_data
+        
     except Exception as e:
         logger.error(f"Error generating study plan: {str(e)}")
         raise HTTPException(
@@ -71,6 +89,7 @@ async def generate_study_plan(
 @router.post("/questions")
 async def generate_quiz_questions(
     quiz_data: QuizInput,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """
@@ -91,7 +110,8 @@ async def generate_quiz_questions(
         questions = result.get("questions", [])
         logger.info(f"Successfully generated {len(questions)} questions")
         
-        return {
+        # Prepare response data
+        response_data = {
             "success": True,
             "questions": questions,
             "metadata": result.get("metadata", {}),
@@ -104,6 +124,16 @@ async def generate_quiz_questions(
             }
         }
         
+        # Schedule async database save
+        background_tasks.add_task(
+            _save_question_history_interaction,
+            current_user.id,
+            quiz_data.model_dump(),
+            response_data
+        )
+        
+        return response_data
+        
     except Exception as e:
         logger.error(f"Error generating quiz questions: {str(e)}")
         raise HTTPException(
@@ -115,6 +145,7 @@ async def generate_quiz_questions(
 @router.post("/explain")
 async def explain_concept(
     explain_data: ExplainInput,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """
@@ -134,7 +165,8 @@ async def explain_concept(
         
         logger.info(f"Successfully generated explanation for concept: {explain_data.concept}")
         
-        return {
+        # Prepare response data
+        response_data = {
             "success": True,
             "explanation": {
                 "content": result.get("explanation"),
@@ -152,6 +184,16 @@ async def explain_concept(
                 "user_id": str(current_user.id)
             }
         }
+        
+        # Schedule async database save
+        background_tasks.add_task(
+            _save_explanation_interaction,
+            current_user.id,
+            explain_data.model_dump(),
+            response_data
+        )
+        
+        return response_data
         
     except Exception as e:
         logger.error(f"Error generating explanation: {str(e)}")
@@ -187,3 +229,70 @@ async def study_health_check():
             "error": str(e),
             "message": "Study routes health check failed"
         }
+
+
+# Background task functions for async database operations
+async def _save_study_plan_interaction(user_id: UUID, input_data: Dict[str, Any], output_data: Dict[str, Any]) -> None:
+    """
+    Background task to save study plan interaction to database
+    
+    Args:
+        user_id: User identifier
+        input_data: Original request data
+        output_data: Generated response data
+    """
+    try:
+        logger.info(f"Saving study plan interaction for user {user_id}")
+        record_id = await save_study_plan_to_db(user_id, input_data, output_data)
+        
+        if record_id:
+            logger.info(f"Successfully saved study plan interaction: {record_id}")
+        else:
+            logger.warning(f"Failed to save study plan interaction for user {user_id}")
+            
+    except Exception as e:
+        logger.error(f"Error in background task - save study plan: {str(e)}")
+
+
+async def _save_question_history_interaction(user_id: UUID, input_data: Dict[str, Any], output_data: Dict[str, Any]) -> None:
+    """
+    Background task to save question history interaction to database
+    
+    Args:
+        user_id: User identifier
+        input_data: Original request data
+        output_data: Generated response data
+    """
+    try:
+        logger.info(f"Saving question history interaction for user {user_id}")
+        record_id = await save_question_history_to_db(user_id, input_data, output_data)
+        
+        if record_id:
+            logger.info(f"Successfully saved question history interaction: {record_id}")
+        else:
+            logger.warning(f"Failed to save question history interaction for user {user_id}")
+            
+    except Exception as e:
+        logger.error(f"Error in background task - save question history: {str(e)}")
+
+
+async def _save_explanation_interaction(user_id: UUID, input_data: Dict[str, Any], output_data: Dict[str, Any]) -> None:
+    """
+    Background task to save explanation interaction to database
+    
+    Args:
+        user_id: User identifier
+        input_data: Original request data
+        output_data: Generated response data
+    """
+    try:
+        logger.info(f"Saving explanation interaction for user {user_id}")
+        record_id = await save_explanation_request_to_db(user_id, input_data, output_data)
+        
+        if record_id:
+            logger.info(f"Successfully saved explanation interaction: {record_id}")
+        else:
+            logger.warning(f"Failed to save explanation interaction for user {user_id}")
+            
+    except Exception as e:
+        logger.error(f"Error in background task - save explanation: {str(e)}")
