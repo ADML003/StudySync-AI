@@ -274,6 +274,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                         checked={selectedProficiency === level.id}
                         onChange={(e) => setSelectedProficiency(e.target.value)}
                         className="sr-only"
+                        aria-label={`Select ${level.name} proficiency level`}
                       />
                       <div className="text-2xl mr-4">{level.icon}</div>
                       <div className="flex-1">
@@ -335,6 +336,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                         setDailyHours(parseFloat(e.target.value))
                       }
                       className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer slider"
+                      aria-label={`Daily study hours: ${dailyHours} hours`}
                     />
                     <div className="flex justify-between text-sm text-muted-foreground mt-2">
                       <span>30 min</span>

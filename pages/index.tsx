@@ -7,7 +7,6 @@ import ConcentricRings from "@/components/ConcentricRings";
 import OnboardingWizard from "@/components/OnboardingWizard";
 
 const Dashboard = () => {
-const Dashboard = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   const handleOnboardingComplete = (data: any) => {

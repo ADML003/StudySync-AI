@@ -87,6 +87,8 @@ const getScoreColor = (score?: number) => {
 };
 
 const Timeline: React.FC<TimelineProps> = ({ events, className }) => {
+  const [hoveredEvent, setHoveredEvent] = useState<string | null>(null);
+
   return (
     <div className={cn("w-full", className)}>
       {/* Timeline Header */}
@@ -101,16 +103,17 @@ const Timeline: React.FC<TimelineProps> = ({ events, className }) => {
       <div className="relative">
         <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide">
           {events.map((event, index) => (
-            <Tooltip key={event.id}>
-              <Tooltip.Button
-                as={motion.button}
+            <div key={event.id} className="relative flex-shrink-0">
+              <motion.button
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
+                onMouseEnter={() => setHoveredEvent(event.id)}
+                onMouseLeave={() => setHoveredEvent(null)}
                 className={cn(
-                  "flex-shrink-0 w-16 h-16 rounded-full border-2 flex items-center justify-center transition-all duration-200",
+                  "w-16 h-16 rounded-full border-2 flex items-center justify-center transition-all duration-200",
                   getEventColor(event),
                   event.completed && "shadow-sm"
                 )}
@@ -120,61 +123,74 @@ const Timeline: React.FC<TimelineProps> = ({ events, className }) => {
                 ) : (
                   <Clock className="h-4 w-4" />
                 )}
-              </Tooltip.Button>
+              </motion.button>
 
-              <Tooltip.Panel className="absolute z-10 w-64 p-3 mt-2 bg-white rounded-lg shadow-lg border border-gray-200">
-                <div className="space-y-2">
-                  {/* Date */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-900">
-                      {formatDate(event.date)}
-                    </span>
-                    {event.completed && (
-                      <CheckCircle className="h-4 w-4 text-green-500" />
+              {/* Custom Tooltip */}
+              {hoveredEvent === event.id && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="absolute z-10 w-64 p-3 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 left-1/2 transform -translate-x-1/2"
+                >
+                  <div className="space-y-2">
+                    {/* Date */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-900">
+                        {formatDate(event.date)}
+                      </span>
+                      {event.completed && (
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                      )}
+                    </div>
+
+                    {/* Topic */}
+                    <div>
+                      <h4 className="font-medium text-gray-900">{event.topic}</h4>
+                      <p className="text-sm text-gray-500 capitalize">
+                        {event.type}
+                      </p>
+                    </div>
+
+                    {/* Quiz Score */}
+                    {event.score !== undefined && (
+                      <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                        <span className="text-sm text-gray-600">Score:</span>
+                        <span
+                          className={cn(
+                            "text-sm font-medium",
+                            getScoreColor(event.score)
+                          )}
+                        >
+                          {getScoreDisplay(event.score)}
+                          {event.score >= 90 && (
+                            <Star className="inline h-3 w-3 ml-1" />
+                          )}
+                        </span>
+                      </div>
                     )}
-                  </div>
 
-                  {/* Topic */}
-                  <div>
-                    <h4 className="font-medium text-gray-900">{event.topic}</h4>
-                    <p className="text-sm text-gray-500 capitalize">
-                      {event.type}
-                    </p>
-                  </div>
-
-                  {/* Quiz Score */}
-                  {event.score !== undefined && (
+                    {/* Status */}
                     <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                      <span className="text-sm text-gray-600">Score:</span>
+                      <span className="text-sm text-gray-600">Status:</span>
                       <span
                         className={cn(
                           "text-sm font-medium",
-                          getScoreColor(event.score)
+                          event.completed ? "text-green-600" : "text-gray-500"
                         )}
                       >
-                        {getScoreDisplay(event.score)}
-                        {event.score >= 90 && (
-                          <Star className="inline h-3 w-3 ml-1" />
-                        )}
+                        {event.completed ? "Completed" : "Upcoming"}
                       </span>
                     </div>
-                  )}
-
-                  {/* Status */}
-                  <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                    <span className="text-sm text-gray-600">Status:</span>
-                    <span
-                      className={cn(
-                        "text-sm font-medium",
-                        event.completed ? "text-green-600" : "text-gray-500"
-                      )}
-                    >
-                      {event.completed ? "Completed" : "Upcoming"}
-                    </span>
                   </div>
-                </div>
-              </Tooltip.Panel>
-            </Tooltip>
+                </motion.div>
+              )}
+
+              {/* Date Label */}
+              <div className="mt-2 text-center">
+                <p className="text-xs text-gray-500">{formatDate(event.date)}</p>
+              </div>
+            </div>
           ))}
         </div>
 
