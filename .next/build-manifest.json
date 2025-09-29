@@ -27,15 +27,20 @@
       "static/chunks/main.js",
       "static/chunks/pages/_error.js"
     ],
-    "/demo": [
+    "/analytics": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
-      "static/chunks/pages/demo.js"
+      "static/chunks/pages/analytics.js"
     ],
-    "/study-plan": [
+    "/component-demo": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
-      "static/chunks/pages/study-plan.js"
+      "static/chunks/pages/component-demo.js"
+    ],
+    "/quiz-demo": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/quiz-demo.js"
     ]
   },
   "ampFirstPages": []

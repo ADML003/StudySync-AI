@@ -2,7 +2,8 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/demo": "pages/demo.js",
   "/": "pages/index.js",
-  "/study-plan": "pages/study-plan.js"
+  "/quiz-demo": "pages/quiz-demo.js",
+  "/component-demo": "pages/component-demo.js",
+  "/analytics": "pages/analytics.js"
 }

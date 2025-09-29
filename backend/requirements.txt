@@ -1,0 +1,31 @@
+# FastAPI Framework
+fastapi==0.104.1
+
+# ASGI Server
+uvicorn[standard]==0.24.0
+
+# Environment Variables
+python-dotenv==1.0.0
+
+# Supabase Client
+supabase==2.0.3
+
+# Data Validation
+pydantic==2.5.0
+
+# JWT Token Handling
+PyJWT==2.8.0
+
+# OpenAI Client (for Cerebras AI compatibility)
+openai==1.51.0
+
+# LangChain for AI chain orchestration
+langchain==0.0.350
+langchain-core==0.1.0
+
+# Additional minimal dependencies
+python-multipart==0.0.6  # For form data handling
+httpx==0.25.2  # For HTTP requests
+python-jose[cryptography]==3.3.0  # For JWT tokens
+passlib[bcrypt]==1.7.4  # For password hashing
+email-validator==2.1.0  # For email validation

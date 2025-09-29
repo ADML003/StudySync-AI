@@ -1,0 +1,50 @@
+#!/bin/bash
+
+# StudySync AI Supabase Setup Script
+echo "🚀 StudySync AI Supabase Setup"
+echo "================================"
+
+echo "✅ Supabase URL configured: https://fpkxqbzaxpihkeysmhsv.supabase.co"
+echo ""
+
+echo "🔑 Missing Credentials Setup:"
+echo "You need to get two more credentials from your Supabase dashboard:"
+echo ""
+echo "1. SERVICE ROLE KEY:"
+echo "   - Go to: https://supabase.com/dashboard/project/fpkxqbzaxpihkeysmhsv/settings/api"
+echo "   - Copy the 'service_role' key (not the anon key)"
+echo "   - This key starts with 'eyJ...' and is much longer than the anon key"
+echo ""
+echo "2. JWT SECRET:"
+echo "   - Go to: https://supabase.com/dashboard/project/fpkxqbzaxpihkeysmhsv/settings/api"
+echo "   - Scroll down to 'JWT Settings'"
+echo "   - Copy the 'JWT Secret' value"
+echo ""
+
+echo "📝 Update your .env file:"
+echo "Replace these lines in backend/.env:"
+echo "SUPABASE_SERVICE_KEY=your_supabase_service_role_key_here"
+echo "SUPABASE_JWT_SECRET=your_supabase_jwt_secret_here"
+echo ""
+
+echo "🗄️  Database Setup:"
+echo "After updating the .env file:"
+echo "1. Go to: https://supabase.com/dashboard/project/fpkxqbzaxpihkeysmhsv/sql/new"
+echo "2. Copy and run the SQL from: backend/schema.sql"
+echo "3. This will create the study_plans table with proper security"
+echo ""
+
+echo "🎯 Quick Test:"
+echo "Once configured, test your setup:"
+echo "cd backend"
+echo "./start.sh"
+echo "Visit: http://localhost:8000/docs"
+echo ""
+
+echo "📚 Your current configuration:"
+echo "SUPABASE_URL=https://fpkxqbzaxpihkeysmhsv.supabase.co"
+echo "ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZwa3hxYnpheHBpaGtleXNtaHN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxNTU1NDIsImV4cCI6MjA3NDczMTU0Mn0.y0D-xq9aj1BvFilzKG2Jjq8NNO5h6JWwqZDrKqRoCIs"
+echo ""
+echo "Need to add:"
+echo "SERVICE_ROLE_KEY=<get from dashboard>"
+echo "JWT_SECRET=<get from dashboard>"
