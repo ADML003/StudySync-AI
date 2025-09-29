@@ -1,6 +1,12 @@
 import React, { useState } from "react";
 import Head from "next/head";
-import { LayoutDashboard, TrendingUp, Clock, BookOpen, Settings } from "lucide-react";
+import {
+  LayoutDashboard,
+  TrendingUp,
+  Clock,
+  BookOpen,
+  Settings,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import TodaysFocus from "@/components/TodaysFocus";
 import ConcentricRings from "@/components/ConcentricRings";
@@ -107,7 +113,7 @@ const Dashboard = () => {
             progress={67}
             adaptiveTip="Try building a small project to practice component composition and state lifting. This will solidify your understanding of React patterns."
           />
-          
+
           {/* Concentric Rings */}
           <div className="flex items-center justify-center">
             <ConcentricRings

@@ -146,7 +146,9 @@ const Timeline: React.FC<TimelineProps> = ({ events, className }) => {
 
                     {/* Topic */}
                     <div>
-                      <h4 className="font-medium text-gray-900">{event.topic}</h4>
+                      <h4 className="font-medium text-gray-900">
+                        {event.topic}
+                      </h4>
                       <p className="text-sm text-gray-500 capitalize">
                         {event.type}
                       </p>
@@ -188,7 +190,9 @@ const Timeline: React.FC<TimelineProps> = ({ events, className }) => {
 
               {/* Date Label */}
               <div className="mt-2 text-center">
-                <p className="text-xs text-gray-500">{formatDate(event.date)}</p>
+                <p className="text-xs text-gray-500">
+                  {formatDate(event.date)}
+                </p>
               </div>
             </div>
           ))}
