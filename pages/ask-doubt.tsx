@@ -30,7 +30,7 @@ const AskDoubt = () => {
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-medium">Subject</label>
-                    <select 
+                    <select
                       className="w-full mt-1 p-2 border rounded-md"
                       aria-label="Select subject for your question"
                     >
