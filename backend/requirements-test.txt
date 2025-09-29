@@ -1,0 +1,52 @@
+# Testing dependencies for StudySync AI backend
+# Run: pip install -r requirements-test.txt
+
+# Core testing framework
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+pytest-mock>=3.11.1
+pytest-timeout>=2.1.0
+
+# HTTP testing
+httpx>=0.24.0
+requests>=2.31.0
+
+# FastAPI testing
+fastapi[all]>=0.100.0
+
+# Mocking and test utilities
+unittest-mock>=1.0.1
+freezegun>=1.2.2
+factory-boy>=3.3.0
+faker>=19.3.0
+
+# Performance and load testing
+pytest-benchmark>=4.0.0
+locust>=2.16.1
+
+# Database testing (if needed)
+pytest-postgresql>=5.0.0
+pytest-mock-resources>=2.10.0
+
+# Code quality
+flake8>=6.0.0
+black>=23.7.0
+isort>=5.12.0
+mypy>=1.5.0
+
+# Documentation testing
+pytest-doctestplus>=1.0.0
+
+# Test reporting
+pytest-html>=3.2.0
+pytest-json-report>=1.5.0
+allure-pytest>=2.13.0
+
+# Environment management
+python-dotenv>=1.0.0
+
+# Additional utilities for comprehensive testing
+responses>=0.23.0
+betamax>=0.8.1
+vcr-unittest>=0.1.7

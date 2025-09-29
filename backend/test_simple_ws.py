@@ -14,7 +14,7 @@ from uuid import uuid4
 async def test_websocket():
     """Test WebSocket streaming quiz generation"""
     
-    uri = "ws://localhost:8001/ws/adapt"
+    uri = "ws://localhost:8000/ws/adapt"
     print(f"🚀 Connecting to WebSocket: {uri}")
     
     try:

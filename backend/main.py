@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 import uvicorn
 from dotenv import load_dotenv
 import os
-from models import StudyPlanCreate, StudyPlan, StudyPlanUpdate, StudyPlanResponse
+from models import StudyPlanCreate, StudyPlan, StudyPlanUpdate, StudyPlanResponse, User
 from auth import get_current_user
 from supabase_client import supabase, validate_supabase_config
 from cerebras_client import cerebras_client, validate_cerebras_config
@@ -44,6 +44,34 @@ app.add_middleware(
 
 # Include routers
 app.include_router(study_router)
+
+# Authentication test endpoint
+@app.get("/auth/test")
+async def test_authentication(current_user: User = Depends(get_current_user)):
+    """
+    Test endpoint to verify JWT authentication is working.
+    Protected endpoint that requires valid Supabase JWT token.
+    
+    Returns:
+        Dict: User information and authentication status
+    """
+    return {
+        "authenticated": True,
+        "user_id": str(current_user.id),
+        "email": current_user.email,
+        "message": "Authentication successful!",
+        "timestamp": datetime.now().isoformat()
+    }
+
+@app.get("/auth/me")
+async def get_current_user_info(current_user: User = Depends(get_current_user)):
+    """
+    Get current authenticated user information.
+    
+    Returns:
+        User: Current user's profile information
+    """
+    return current_user
 
 # WebSocket endpoints
 @app.websocket("/ws/adapt")
