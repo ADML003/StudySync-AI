@@ -1,9 +1,11 @@
 "use client";
 
-import { Dialog, Transition, Combobox } from "@headlessui/react";
+import { Dialog } from "@headlessui/react";
+import { Transition } from "@headlessui/react";
+import { Combobox } from "@headlessui/react";
 import { Fragment, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronUpDownIcon, CheckIcon, XMarkIcon } from "lucide-react";
+import { ChevronsUpDown, Check, X } from "lucide-react";
 
 interface QuizModalProps {
   isOpen: boolean;
@@ -112,7 +114,7 @@ export default function QuizModal({
                           className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                           aria-label="Close modal"
                         >
-                          <XMarkIcon className="h-6 w-6" />
+                          <X className="h-6 w-6" />
                         </button>
                       </div>
 
@@ -137,7 +139,7 @@ export default function QuizModal({
                                   placeholder="Search for a topic..."
                                 />
                                 <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
-                                  <ChevronUpDownIcon
+                                  <ChevronsUpDown
                                     className="h-5 w-5 text-gray-400"
                                     aria-hidden="true"
                                   />
@@ -188,7 +190,7 @@ export default function QuizModal({
                                                     : "text-teal-600"
                                                 }`}
                                               >
-                                                <CheckIcon
+                                                <Check
                                                   className="h-5 w-5"
                                                   aria-hidden="true"
                                                 />

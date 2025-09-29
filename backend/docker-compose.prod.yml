@@ -1,0 +1,76 @@
+version: "3.8"
+
+# Production Docker Compose Override
+# Use with: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
+
+services:
+  studysync-backend:
+    build:
+      target: production # Use production stage
+    environment:
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - LOG_LEVEL=INFO
+      - WORKERS_COUNT=4
+    volumes:
+      - studysync-logs:/app/logs # Only mount logs, not source code
+    # Remove port exposure (use nginx instead)
+    ports: []
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5"
+        reservations:
+          memory: 256M
+          cpus: "0.25"
+
+  postgres:
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD} # Use secure password from env
+    # Remove port exposure for security
+    ports: []
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      # Remove init scripts mounting for production
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "0.5"
+        reservations:
+          memory: 512M
+          cpus: "0.25"
+
+  redis:
+    # Remove port exposure for security
+    ports: []
+    volumes:
+      - redis-data:/data
+      # Use production Redis config
+      - ./redis.prod.conf:/usr/local/etc/redis/redis.conf:ro
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.25"
+        reservations:
+          memory: 128M
+          cpus: "0.1"
+
+  nginx:
+    # Enable nginx in production
+    profiles: []
+    volumes:
+      - ./nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - studysync-logs:/var/log/nginx
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: "0.25"
+        reservations:
+          memory: 64M
+          cpus: "0.1"

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircleIcon, XCircleIcon } from "lucide-react";
+import { CheckCircle, XCircle } from "lucide-react";
 
 // Import Swiper styles
 import "swiper/css";
@@ -217,9 +217,9 @@ export default function QuestionCarousel({
                         {isAnswered && (
                           <div className="ml-2">
                             {isCorrect ? (
-                              <CheckCircleIcon className="h-6 w-6 text-green-600" />
+                              <CheckCircle className="h-6 w-6 text-green-600" />
                             ) : isSelected ? (
-                              <XCircleIcon className="h-6 w-6 text-red-600" />
+                              <XCircle className="h-6 w-6 text-red-600" />
                             ) : null}
                           </div>
                         )}
@@ -272,12 +272,12 @@ export default function QuestionCarousel({
                     >
                       {questionStates[question.id]?.isCorrect ? (
                         <>
-                          <CheckCircleIcon className="h-5 w-5 mr-2" />
+                          <CheckCircle className="h-5 w-5 mr-2" />
                           Correct!
                         </>
                       ) : (
                         <>
-                          <XCircleIcon className="h-5 w-5 mr-2" />
+                          <XCircle className="h-5 w-5 mr-2" />
                           Incorrect
                         </>
                       )}

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import FloatingChatWidget from "@/components/FloatingChatWidget";
 import ConceptOverlay from "@/components/ConceptOverlay";
 import {
   Eye,
@@ -528,7 +527,6 @@ export default function ComponentDemoPage() {
       </div>
 
       {/* Floating Chat Widget */}
-      <FloatingChatWidget onSendMessage={handleSendMessage} />
 
       {/* Concept Overlay */}
       <ConceptOverlay

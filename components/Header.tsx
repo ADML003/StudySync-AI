@@ -6,6 +6,7 @@ import {
   Menu,
   X,
   Home,
+  Bot,
   BarChart3,
   BookOpen,
   MessageSquare,
@@ -13,6 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import ThemeToggle from "./ThemeToggle";
+import HeaderChat from "./HeaderChat";
 
 interface HeaderProps {
   className?: string;
@@ -20,6 +22,7 @@ interface HeaderProps {
 
 const navigationItems = [
   { name: "Home", href: "/", icon: Home },
+  { name: "AI Chat", href: "/ai-chat", icon: Bot },
   { name: "Quiz Demo", href: "/quiz-demo", icon: BookOpen },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Components", href: "/component-demo", icon: MessageSquare },
@@ -69,6 +72,7 @@ export default function Header({ className = "" }: HeaderProps) {
 
           {/* Desktop Controls */}
           <div className="hidden md:flex items-center space-x-4">
+            <HeaderChat />
             <ThemeToggle size="md" />
             <button
               className="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
@@ -80,6 +84,7 @@ export default function Header({ className = "" }: HeaderProps) {
 
           {/* Mobile Controls */}
           <div className="flex md:hidden items-center space-x-2">
+            <HeaderChat />
             <ThemeToggle size="sm" />
             <button
               onClick={toggleMobileMenu}

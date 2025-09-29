@@ -4,6 +4,5 @@
   "/_document": "pages/_document.js",
   "/": "pages/index.js",
   "/quiz-demo": "pages/quiz-demo.js",
-  "/component-demo": "pages/component-demo.js",
-  "/analytics": "pages/analytics.js"
+  "/ai-chat": "pages/ai-chat.js"
 }

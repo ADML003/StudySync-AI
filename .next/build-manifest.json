@@ -27,15 +27,10 @@
       "static/chunks/main.js",
       "static/chunks/pages/_error.js"
     ],
-    "/analytics": [
+    "/ai-chat": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
-      "static/chunks/pages/analytics.js"
-    ],
-    "/component-demo": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/component-demo.js"
+      "static/chunks/pages/ai-chat.js"
     ],
     "/quiz-demo": [
       "static/chunks/webpack.js",

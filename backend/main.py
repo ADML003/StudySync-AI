@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 import uvicorn
 from dotenv import load_dotenv
 import os
-from models import StudyPlanCreate, StudyPlan, StudyPlanUpdate, StudyPlanResponse, User
+from models import StudyPlanCreate, StudyPlan, StudyPlanUpdate, StudyPlanResponse, User, ChatMessage, ChatResponse
 from auth import get_current_user
 from supabase_client import supabase, validate_supabase_config
 from cerebras_client import cerebras_client, validate_cerebras_config
@@ -270,6 +270,75 @@ async def get_user_study_plans(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to retrieve study plans: {str(e)}"
+        )
+
+# Chat Endpoints
+@app.post("/chat", response_model=ChatResponse)
+async def chat_with_cerebras(
+    chat_data: ChatMessage,
+    # current_user_id: UUID = Depends(get_current_user)  # Disabled for testing
+):
+    """
+    Send a message to Cerebras AI and get a response.
+    
+    Args:
+        chat_data: Chat message and configuration
+        
+    Returns:
+        ChatResponse: AI response from Cerebras
+        
+    Raises:
+        HTTPException: If Cerebras is not configured or request fails
+    """
+    try:
+        if not cerebras_client:
+            raise HTTPException(
+                status_code=503, 
+                detail="Cerebras AI is not configured. Please set CEREBRAS_API_KEY environment variable."
+            )
+        
+        # Prepare the chat message
+        messages = [
+            {
+                "role": "system", 
+                "content": "You are StudySync AI, a helpful educational assistant. Provide clear, accurate, and educational responses to help students learn effectively."
+            }
+        ]
+        
+        # Add context if provided
+        if chat_data.context:
+            messages.append({
+                "role": "system",
+                "content": f"Additional context: {chat_data.context}"
+            })
+        
+        # Add user message
+        messages.append({
+            "role": "user",
+            "content": chat_data.message
+        })
+        
+        # Call Cerebras AI
+        response = cerebras_client.chat.completions.create(
+            model=chat_data.model,
+            messages=messages,
+            max_tokens=1000,
+            temperature=0.7
+        )
+        
+        # Extract response
+        ai_response = response.choices[0].message.content
+        
+        return ChatResponse(
+            response=ai_response,
+            model_used=chat_data.model,
+            timestamp=datetime.utcnow()
+        )
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get response from Cerebras AI: {str(e)}"
         )
 
 if __name__ == "__main__":

@@ -189,3 +189,37 @@ class StudyPlanResponse(BaseModel):
                 }
             }
         }
+
+class ChatMessage(BaseModel):
+    """
+    Model for chat messages sent to Cerebras AI
+    """
+    message: str = Field(..., description="User's message/question")
+    context: Optional[str] = Field(None, description="Optional context for the conversation")
+    model: Optional[str] = Field("llama3.1-8b", description="Cerebras model to use")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "message": "Explain quantum physics in simple terms",
+                "context": "I'm a high school student learning physics",
+                "model": "llama3.1-8b"
+            }
+        }
+
+class ChatResponse(BaseModel):
+    """
+    Response model for chat messages from Cerebras AI
+    """
+    response: str = Field(..., description="AI response to the user's message")
+    model_used: str = Field(..., description="The Cerebras model that generated the response")
+    timestamp: datetime = Field(default_factory=datetime.utcnow, description="Response timestamp")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "response": "Quantum physics is the branch of physics that studies the behavior of matter and energy at the atomic and subatomic level...",
+                "model_used": "llama3.1-8b",
+                "timestamp": "2024-01-15T10:30:00Z"
+            }
+        }
