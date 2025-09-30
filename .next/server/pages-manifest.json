@@ -2,7 +2,9 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/": "pages/index.js",
-  "/quiz-demo": "pages/quiz-demo.js",
-  "/ai-chat": "pages/ai-chat.js"
+  "/dashboard": "pages/dashboard.js",
+  "/study-plan": "pages/study-plan.js",
+  "/analytics": "pages/analytics.js",
+  "/quiz": "pages/quiz.js",
+  "/ask-doubt": "pages/ask-doubt.js"
 }

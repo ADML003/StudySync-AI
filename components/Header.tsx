@@ -7,6 +7,8 @@ import {
   X,
   Home,
   Bot,
+  Brain,
+  Users,
   BarChart3,
   BookOpen,
   MessageSquare,
@@ -23,8 +25,11 @@ interface HeaderProps {
 const navigationItems = [
   { name: "Home", href: "/", icon: Home },
   { name: "AI Chat", href: "/ai-chat", icon: Bot },
+  { name: "Smart Tutor", href: "/smart-tutor", icon: Brain },
+  { name: "Study Room", href: "/study-room", icon: Users },
   { name: "Quiz Demo", href: "/quiz-demo", icon: BookOpen },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
+  { name: "AI Analytics", href: "/ai-analytics", icon: Brain },
   { name: "Components", href: "/component-demo", icon: MessageSquare },
 ];
 
